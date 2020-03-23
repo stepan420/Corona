@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coronavirus</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        google.charts.load('current', {packages: ['corechart', 'line']});
+        let obj;
+        let c;
+        function onload(){
+            fetch("https://pomber.github.io/covid19/timeseries.json").then(function(response){
+                response.text().then(function(text){
+                    obj = JSON.parse(text);
+                    loadCountries();
+                    drawAxisTickColors();
+                })
+            })
+        }
+        function loadCountries(){
+            fetch("https://nodejs-3260.rostiapp.cz/coronavirus/").then(function(response){
+                response.text().then(function(text){
+                    let cobj = JSON.parse(text);
+                    let s = "";
+                    for (let x of cobj){s = s + "<option>" + x + "</option>"}
+                    document.getElementById("country").innerHTML = s
+                })
+            })
+        }
+        function drawAxisTickColors() {
+            let data = new google.visualization.DataTable();
+            data.addColumn('date', 'date');
+            data.addColumn('number', 'Confirmed');
+            data.addColumn('number', 'Deaths');
+
+            let rows = new Array();
+            c = document.getElementById("country").value;
+            if (c) {
+                for (let d of obj[c]) {rows.push([new Date(d.date), d.confirmed, d.deaths])}
+            }
+            else {
+                c = "Czechia";
+                document.getElementById("country").value = c;
+                for (let d of obj[c]){rows.push([new Date(d.date), d.confirmed, d.deaths])}
+            }
+            data.addRows(rows);
+
+            let options = {
+                title: 'COVID-19 in ' + c,
+                height: '800',
+                hAxis: {
+                    title: 'Date',
+                    format: 'd.M.yyyy',
+                    textStyle: {color: '#01579b', fontSize: 16, fontName: 'Arial', bold: true},
+                    titleTextStyle: {color: '#01579b', fontSize: 24, fontName: 'Arial', bold: false}
+                },
+                vAxis: {
+                    title: 'Number of',
+                    viewWindow: {min: 0},
+                    textStyle: {color: '#1a237e', fontSize: 24, bold: true},
+                    titleTextStyle: {color: '#1a237e', fontSize: 24, bold: true}
+                },
+                colors: ['#a52714', '#097138']
+            };
+            let chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+        }
+    </script>
+</head>
+<body onload="onload()">
+<select id="country" onChange="drawAxisTickColors()"></select>
+<div id="chart_div"></div>
+</body>
+</html>
