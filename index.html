@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Coronavirus</title>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <link href="https://unpkg.com/tabulator-tables@4.5.3/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.3/dist/js/tabulator.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
     <script>
         google.charts.load('current', {packages: ['corechart', 'line']});
         let obj;
@@ -14,6 +17,7 @@
                     obj = JSON.parse(text);
                     loadCountries();
                     drawAxisTickColors();
+                    tabulka();
                 })
             })
         }
@@ -64,11 +68,34 @@
             };
             let chart = new google.visualization.LineChart(document.getElementById('chart_div'));
             chart.draw(data, options);
+            tabulka();
+        }
+        function tabulka(){
+            let table = new Tabulator(document.getElementById("example-table"), {
+                layout:"fitColumns",
+                pagination:"local",
+                paginationSize:10,
+                paginationSizeSelector:[5, 10, 20],
+                data:obj[c],
+                columns:[
+                    {title:"Datum", field:"date", align:"center", sorter:"date", sorterParams:{format:"YYYY-M-D"},
+                        formatter:"datetime", formatterParams:{
+                            inputFormat:"YYYY-M-D",
+                            outputFormat:"D.M.YYYY"},
+                        headerFilter:"select", headerFilterParams:{values:true}},
+                    {title:"Nakažených", field:"confirmed", sorter:"number", headerFilter:"select", headerFilterParams:{values:true}},
+                    {title:"Mrtvých", field:"deaths", sorter:"number"},
+                    {title:"Vyléčených", field:"recovered", sorter:"number"},
+                ],
+            });
+            let cols = table.getColumns();
+            table.setSort(cols[0], "desc");
         }
     </script>
 </head>
 <body onload="onload()">
 <select id="country" onChange="drawAxisTickColors()"></select>
 <div id="chart_div"></div>
+<div id="example-table"></div>
 </body>
 </html>
